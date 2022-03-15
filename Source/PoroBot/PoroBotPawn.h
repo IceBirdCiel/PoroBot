@@ -13,7 +13,7 @@ class APoroBotPawn : public APawn
 
 	/* The mesh component */
 	UPROPERTY(Category = Mesh, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UStaticMeshComponent* ShipMeshComponent;
+	class USkeletalMeshComponent* MeshComponent;
 
 public:
 	APoroBotPawn();
@@ -21,10 +21,6 @@ public:
 	/* The speed our ship moves around the level */
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	float MoveSpeed;
-
-	/** Sound to play each time we fire */
-	UPROPERTY(Category = Audio, EditAnywhere, BlueprintReadWrite)
-	class USoundBase* FireSound;
 
 	// Begin Actor Interface
 	virtual void Tick(float DeltaSeconds) override;
@@ -43,7 +39,7 @@ private:
 	FTimerHandle TimerHandle_ShotTimerExpired;
 
 public:
-	/** Returns ShipMeshComponent subobject **/
-	FORCEINLINE class UStaticMeshComponent* GetShipMeshComponent() const { return ShipMeshComponent; }
+	/** Returns MeshComponent subobject **/
+	FORCEINLINE class USkeletalMeshComponent* GetMeshComponent() const { return MeshComponent; }
 };
 
