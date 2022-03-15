@@ -12,6 +12,7 @@
 #include "Engine/StaticMesh.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
+#include "DrawDebugHelpers.h"
 
 const FName APoroBotPawn::MoveForwardBinding("MoveForward");
 const FName APoroBotPawn::MoveRightBinding("MoveRight");
@@ -44,10 +45,6 @@ APoroBotPawn::APoroBotPawn()
 
 	// Movement
 	MoveSpeed = 1000.0f;
-	// Weapon
-	GunOffset = FVector(90.f, 0.f, 0.f);
-	FireRate = 0.1f;
-	bCanFire = true;
 }
 
 void APoroBotPawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -66,18 +63,45 @@ void APoroBotPawn::Tick(float DeltaSeconds)
 	const float RightValue = GetInputAxisValue(MoveRightBinding);
 
 	// Clamp max size so that (X=1, Y=1) doesn't cause faster movement in diagonal directions
-	const FVector MoveDirection = FVector(ForwardValue, RightValue, 0.f).GetClampedToMaxSize(1.0f);
+	//const FVector MoveDirection = FVector(ForwardValue, RightValue, 0.f).GetClampedToMaxSize(1.0f);
+	const FVector MoveDirection = GetActorForwardVector();
+	const FVector MoveDirectionLeft = -GetActorRightVector();
+	const FVector MoveDirectionRight = GetActorRightVector();
 
 	// Calculate  movement
-	const FVector Movement = MoveDirection * MoveSpeed * DeltaSeconds;
+	FVector Movement = MoveDirection * MoveSpeed * DeltaSeconds;
+	
+	// Get the location of the agent
+	FVector AgentLocation = GetActorLocation();
+	
+	// Get the direction the agent is facing
+	FVector Direction = GetActorForwardVector();
+	GetActorRightVector();
+
+	FVector newLocation = AgentLocation + Direction * 100;
+
+	// Default trace params
+	FCollisionQueryParams TraceParams(TEXT("LineOfSight_Trace"), false, this);
+
 
 	// If non-zero size, move this actor
 	if (Movement.SizeSquared() > 0.0f)
 	{
-		const FRotator NewRotation = Movement.Rotation();
+		FRotator NewRotation = Movement.Rotation();
+		FHitResult HitM(1.f);
 		FHitResult Hit(1.f);
-		RootComponent->MoveComponent(Movement, NewRotation, true, &Hit);
-		
+		RootComponent->MoveComponent(Movement, NewRotation, true, &HitM);
+		UWorld* World = GetWorld();
+		DrawDebugLine(World, AgentLocation, newLocation, FColor::Yellow, true, 0, 0, 10);
+
+		GetWorld()->LineTraceSingleByChannel(Hit, AgentLocation, newLocation, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
+		AActor* HitActor = Hit.GetActor();
+		if (HitActor != NULL)
+		{
+			Movement = MoveDirectionLeft * MoveSpeed * DeltaSeconds;
+			NewRotation = Movement.Rotation();
+			RootComponent->MoveComponent(Movement, NewRotation, true, &HitM);
+		}
 		if (Hit.IsValidBlockingHit())
 		{
 			const FVector Normal2D = Hit.Normal.GetSafeNormal2D();
