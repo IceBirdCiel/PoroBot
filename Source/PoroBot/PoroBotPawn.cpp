@@ -4,7 +4,6 @@
 #include "PoroBotProjectile.h"
 #include "TimerManager.h"
 #include "UObject/ConstructorHelpers.h"
-#include "Camera/CameraComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -13,6 +12,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "DrawDebugHelpers.h"
+#include "Kismet/KismetMathLibrary.h"
 
 const FName APoroBotPawn::MoveForwardBinding("MoveForward");
 const FName APoroBotPawn::MoveRightBinding("MoveRight");
@@ -29,19 +29,6 @@ APoroBotPawn::APoroBotPawn()
 	// Cache our sound effect
 	static ConstructorHelpers::FObjectFinder<USoundBase> FireAudio(TEXT("/Game/TwinStick/Audio/TwinStickFire.TwinStickFire"));
 	FireSound = FireAudio.Object;
-
-	// Create a camera boom...
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->SetUsingAbsoluteRotation(true); // Don't want arm to rotate when ship does
-	CameraBoom->TargetArmLength = 1200.f;
-	CameraBoom->SetRelativeRotation(FRotator(-80.f, 0.f, 0.f));
-	CameraBoom->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
-
-	// Create a camera...
-	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"));
-	CameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
-	CameraComponent->bUsePawnControlRotation = false;	// Camera does not rotate relative to arm
 
 	// Movement
 	MoveSpeed = 1000.0f;
@@ -65,8 +52,6 @@ void APoroBotPawn::Tick(float DeltaSeconds)
 	// Clamp max size so that (X=1, Y=1) doesn't cause faster movement in diagonal directions
 	//const FVector MoveDirection = FVector(ForwardValue, RightValue, 0.f).GetClampedToMaxSize(1.0f);
 	const FVector MoveDirection = GetActorForwardVector();
-	const FVector MoveDirectionLeft = -GetActorRightVector();
-	const FVector MoveDirectionRight = GetActorRightVector();
 
 	// Calculate  movement
 	FVector Movement = MoveDirection * MoveSpeed * DeltaSeconds;
@@ -76,9 +61,12 @@ void APoroBotPawn::Tick(float DeltaSeconds)
 	
 	// Get the direction the agent is facing
 	FVector Direction = GetActorForwardVector();
-	GetActorRightVector();
+	FVector DirectionLeft = -GetActorRightVector();
+	FVector DirectionRight = GetActorRightVector();
 
 	FVector newLocation = AgentLocation + Direction * 100;
+	FVector newLocationLeft = AgentLocation + DirectionLeft * 200;
+	FVector newLocationRight = AgentLocation + DirectionRight * 200;
 
 	// Default trace params
 	FCollisionQueryParams TraceParams(TEXT("LineOfSight_Trace"), false, this);
@@ -89,24 +77,55 @@ void APoroBotPawn::Tick(float DeltaSeconds)
 	{
 		FRotator NewRotation = Movement.Rotation();
 		FHitResult HitM(1.f);
-		FHitResult Hit(1.f);
-		RootComponent->MoveComponent(Movement, NewRotation, true, &HitM);
+		FHitResult HitForward(1.f);
+		FHitResult HitLeft(1.f);
+		FHitResult HitRight(1.f);
 		UWorld* World = GetWorld();
-		DrawDebugLine(World, AgentLocation, newLocation, FColor::Yellow, true, 0, 0, 10);
-
-		GetWorld()->LineTraceSingleByChannel(Hit, AgentLocation, newLocation, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
-		AActor* HitActor = Hit.GetActor();
-		if (HitActor != NULL)
-		{
-			Movement = MoveDirectionLeft * MoveSpeed * DeltaSeconds;
-			NewRotation = Movement.Rotation();
-			RootComponent->MoveComponent(Movement, NewRotation, true, &HitM);
-		}
-		if (Hit.IsValidBlockingHit())
-		{
-			const FVector Normal2D = Hit.Normal.GetSafeNormal2D();
-			const FVector Deflection = FVector::VectorPlaneProject(Movement, Normal2D) * (1.f - Hit.Time);
-			RootComponent->MoveComponent(Deflection, NewRotation, true);
-		}
+		DrawDebugLine(World, AgentLocation, newLocation, FColor::Yellow, false, 0, 0, 10);
+		DrawDebugLine(World, AgentLocation, newLocationLeft, FColor::Red, false, 0, 0, 10);
+		DrawDebugLine(World, AgentLocation, newLocationRight, FColor::Green, false, 0, 0, 10);
+		//Raycast Forward
+		GetWorld()->LineTraceSingleByChannel(HitForward, AgentLocation, newLocation, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
+		//Raycast Left
+		GetWorld()->LineTraceSingleByChannel(HitLeft, AgentLocation, newLocationLeft, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
+		//Raycast Right
+		GetWorld()->LineTraceSingleByChannel(HitRight, AgentLocation, newLocationRight, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
+		AActor* HitActor = HitForward.GetActor();
+		AActor* HitActorLeft = HitLeft.GetActor();
+		AActor* HitActorRight = HitRight.GetActor();
+		Movement = getMovement(HitActor, HitActorLeft, HitActorRight, DeltaSeconds, Movement);
+		NewRotation = Movement.Rotation();
+		RootComponent->MoveComponent(Movement, NewRotation, true, &HitM);
 	}
+}
+
+FVector APoroBotPawn::getMovement(AActor* actorForward, AActor* actorLeft, AActor* actorRight, float DeltaSeconds, FVector initialMovement) {
+	FVector Movement = initialMovement;
+
+	const FVector MoveDirectionLeft = -GetActorRightVector();
+	const FVector MoveDirectionRight = GetActorRightVector();
+	
+	if (actorForward != NULL)
+	{
+		
+		if (actorLeft != NULL) {
+			Movement = MoveDirectionRight * MoveSpeed * DeltaSeconds;
+		}
+		else if (actorRight != NULL) {
+			Movement = MoveDirectionLeft * MoveSpeed * DeltaSeconds;
+		}
+		else {
+			float rand = FMath::FRandRange(0, 1);
+			if (rand < 0.5) {
+				Movement = MoveDirectionLeft * MoveSpeed * DeltaSeconds;
+			}
+			else {
+				Movement = MoveDirectionRight * MoveSpeed * DeltaSeconds;
+			}
+
+		}
+		
+
+	}
+	return Movement;
 }
