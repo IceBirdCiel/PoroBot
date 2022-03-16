@@ -33,7 +33,7 @@ public:
 	static const FName MoveForwardBinding;
 	static const FName MoveRightBinding;
 	FVector Movement;
-	float timeCoroutine = 1;
+	float timeCoroutine = 0.5;
 
 private:
 

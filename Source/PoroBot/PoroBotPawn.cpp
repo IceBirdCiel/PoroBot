@@ -56,9 +56,9 @@ void APoroBotPawn::Tick(float DeltaSeconds)
 	FVector DirectionLeft = -GetActorRightVector();
 	FVector DirectionRight = GetActorRightVector();
 
-	FVector newLocation = AgentLocation + Direction * 300;
-	FVector newLocationLeft = AgentLocation + DirectionLeft * 300;
-	FVector newLocationRight = AgentLocation + DirectionRight * 300;
+	FVector newLocation = AgentLocation + Direction * 400;
+	FVector newLocationLeft = AgentLocation + DirectionLeft * 400;
+	FVector newLocationRight = AgentLocation + DirectionRight * 400;
 
 	// Default trace params
 	FCollisionQueryParams TraceParams(TEXT("LineOfSight_Trace"), false, this);
@@ -88,7 +88,7 @@ void APoroBotPawn::Tick(float DeltaSeconds)
 		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, FString::SanitizeFloat(timeCoroutine));
 		if (timeCoroutine < 0) {
 			Movement = getMovement(HitActor, HitActorLeft, HitActorRight, DeltaSeconds, Movement);
-			timeCoroutine = 1;
+			timeCoroutine = 0.5;
 		}
 		timeCoroutine -= DeltaSeconds;
 		NewRotation = Movement.Rotation();
