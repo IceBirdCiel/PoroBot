@@ -36,6 +36,8 @@ public:
 	// Static names for axis bindings
 	static const FName MoveForwardBinding;
 	static const FName MoveRightBinding;
+	FVector Movement;
+	float timeCoroutine = 1;
 
 private:
 

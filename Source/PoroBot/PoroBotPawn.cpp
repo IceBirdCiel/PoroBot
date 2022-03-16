@@ -45,16 +45,12 @@ void APoroBotPawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 
 void APoroBotPawn::Tick(float DeltaSeconds)
 {
-	// Find movement direction
-	const float ForwardValue = GetInputAxisValue(MoveForwardBinding);
-	const float RightValue = GetInputAxisValue(MoveRightBinding);
-
 	// Clamp max size so that (X=1, Y=1) doesn't cause faster movement in diagonal directions
 	//const FVector MoveDirection = FVector(ForwardValue, RightValue, 0.f).GetClampedToMaxSize(1.0f);
 	const FVector MoveDirection = GetActorForwardVector();
 
 	// Calculate  movement
-	FVector Movement = MoveDirection * MoveSpeed * DeltaSeconds;
+	Movement = MoveDirection * MoveSpeed * DeltaSeconds;
 	
 	// Get the location of the agent
 	FVector AgentLocation = GetActorLocation();
@@ -64,9 +60,9 @@ void APoroBotPawn::Tick(float DeltaSeconds)
 	FVector DirectionLeft = -GetActorRightVector();
 	FVector DirectionRight = GetActorRightVector();
 
-	FVector newLocation = AgentLocation + Direction * 100;
-	FVector newLocationLeft = AgentLocation + DirectionLeft * 200;
-	FVector newLocationRight = AgentLocation + DirectionRight * 200;
+	FVector newLocation = AgentLocation + Direction * 300;
+	FVector newLocationLeft = AgentLocation + DirectionLeft * 300;
+	FVector newLocationRight = AgentLocation + DirectionRight * 300;
 
 	// Default trace params
 	FCollisionQueryParams TraceParams(TEXT("LineOfSight_Trace"), false, this);
@@ -93,39 +89,48 @@ void APoroBotPawn::Tick(float DeltaSeconds)
 		AActor* HitActor = HitForward.GetActor();
 		AActor* HitActorLeft = HitLeft.GetActor();
 		AActor* HitActorRight = HitRight.GetActor();
-		Movement = getMovement(HitActor, HitActorLeft, HitActorRight, DeltaSeconds, Movement);
+		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, FString::SanitizeFloat(timeCoroutine));
+		if (timeCoroutine < 0) {
+			Movement = getMovement(HitActor, HitActorLeft, HitActorRight, DeltaSeconds, Movement);
+			timeCoroutine = 1;
+		}
+		timeCoroutine -= DeltaSeconds;
 		NewRotation = Movement.Rotation();
 		RootComponent->MoveComponent(Movement, NewRotation, true, &HitM);
 	}
 }
 
 FVector APoroBotPawn::getMovement(AActor* actorForward, AActor* actorLeft, AActor* actorRight, float DeltaSeconds, FVector initialMovement) {
-	FVector Movement = initialMovement;
+	FVector Move = initialMovement;
 
 	const FVector MoveDirectionLeft = -GetActorRightVector();
 	const FVector MoveDirectionRight = GetActorRightVector();
-	
-	if (actorForward != NULL)
-	{
-		
-		if (actorLeft != NULL) {
-			Movement = MoveDirectionRight * MoveSpeed * DeltaSeconds;
-		}
-		else if (actorRight != NULL) {
-			Movement = MoveDirectionLeft * MoveSpeed * DeltaSeconds;
+	if(actorForward != NULL && actorLeft != NULL){
+		Move = MoveDirectionRight * MoveSpeed * DeltaSeconds;
+	}
+	else if (actorForward != NULL && actorRight != NULL) {
+		Move = MoveDirectionLeft * MoveSpeed * DeltaSeconds;
+	}
+	else if (actorLeft != NULL && actorRight != NULL) {
+		Move = initialMovement;
+	}
+	else if (actorRight != NULL) {
+		float rand = FMath::FRandRange(0, 1);
+		if (rand < 0.5) {
+			Move = MoveDirectionLeft * MoveSpeed * DeltaSeconds;
 		}
 		else {
-			float rand = FMath::FRandRange(0, 1);
-			if (rand < 0.5) {
-				Movement = MoveDirectionLeft * MoveSpeed * DeltaSeconds;
-			}
-			else {
-				Movement = MoveDirectionRight * MoveSpeed * DeltaSeconds;
-			}
-
+			Move = initialMovement;
 		}
-		
-
 	}
-	return Movement;
+	else {
+		float rand = FMath::FRandRange(0, 1);
+		if (rand < 0.5) {
+			Move = initialMovement;
+		}
+		else {
+			Move = MoveDirectionRight * MoveSpeed * DeltaSeconds;
+		}
+	}
+	return Move;
 }
