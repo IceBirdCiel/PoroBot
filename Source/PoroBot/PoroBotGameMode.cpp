@@ -7,7 +7,6 @@
 APoroBotGameMode::APoroBotGameMode()
 {
 	// set default pawn class to our character class
-	DefaultPawnClass = APoroBotPawn::StaticClass();
-	//HUDClass = AMyHUD::StaticClass();
+	DefaultPawnClass = NULL;
 }
 

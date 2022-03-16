@@ -4,11 +4,11 @@
 #include "PoroBotProjectile.h"
 #include "TimerManager.h"
 #include "UObject/ConstructorHelpers.h"
-#include "Components/StaticMeshComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Engine/CollisionProfile.h"
-#include "Engine/StaticMesh.h"
+#include "Engine/SkeletalMesh.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "DrawDebugHelpers.h"
@@ -19,16 +19,12 @@ const FName APoroBotPawn::MoveRightBinding("MoveRight");
 
 APoroBotPawn::APoroBotPawn()
 {	
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> ShipMesh(TEXT("/Game/TwinStick/Meshes/TwinStickUFO.TwinStickUFO"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> Mesh(TEXT("/Game/TwinStick/Poro/PoroBot_Run.PoroBot_Run"));
 	// Create the mesh component
-	ShipMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ShipMesh"));
-	RootComponent = ShipMeshComponent;
-	ShipMeshComponent->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
-	ShipMeshComponent->SetStaticMesh(ShipMesh.Object);
-	
-	// Cache our sound effect
-	static ConstructorHelpers::FObjectFinder<USoundBase> FireAudio(TEXT("/Game/TwinStick/Audio/TwinStickFire.TwinStickFire"));
-	FireSound = FireAudio.Object;
+	MeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
+	RootComponent = MeshComponent;
+	MeshComponent->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
+	MeshComponent->SetSkeletalMesh(Mesh.Object);
 
 	// Movement
 	MoveSpeed = 1000.0f;
