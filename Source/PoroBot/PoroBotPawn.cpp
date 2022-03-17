@@ -21,7 +21,6 @@ APoroBotPawn::APoroBotPawn()
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> Mesh(TEXT("/Game/TwinStick/Poro/PoroBot_Run.PoroBot_Run"));
 	// Create the mesh component
 	MeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
-	RootComponent = MeshComponent;
 	//MeshComponent->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
 	MeshComponent->SetSkeletalMesh(Mesh.Object);
 
@@ -29,6 +28,7 @@ APoroBotPawn::APoroBotPawn()
     SphereComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Sphere"));
     SphereComponent->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
     SphereComponent->SetStaticMesh(Sphere.Object);
+    RootComponent = SphereComponent;
 
 	// Movement
 	MoveSpeed = 1000.0f;
@@ -103,21 +103,21 @@ void APoroBotPawn::Move(float DeltaSeconds) {
 		GetWorld()->LineTraceMultiByChannel(Arr_HitLeft, AgentLocation, newLocationLeft, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
 		//Raycast Right
 		GetWorld()->LineTraceMultiByChannel(Arr_HitRight, AgentLocation, newLocationRight, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
-		for each ( FHitResult Hit in Arr_HitForward)
+		for ( FHitResult Hit : Arr_HitForward)
 		{
 			AActor* hitActor = Hit.GetActor();
 			if (hitActor != NULL && hitActor->GetName().Contains("Obstacle")) {
 				HitForward = Hit;
 			}
 		}
-		for each (FHitResult Hit in Arr_HitLeft)
+		for  (FHitResult Hit : Arr_HitLeft)
 		{
 			AActor* hitActor = Hit.GetActor();
 			if (hitActor != NULL && hitActor->GetName().Contains("Obstacle")) {
 				HitLeft = Hit;
 			}
 		}
-		for each (FHitResult Hit in Arr_HitRight)
+		for  (FHitResult Hit : Arr_HitRight)
 		{
 			AActor* hitActor = Hit.GetActor();
 			if (hitActor != NULL && hitActor->GetName().Contains("Obstacle")) {
