@@ -24,9 +24,27 @@ public:
 
 	void ResetCombo();
 
+	void RIPPoro();
+
+	void WinPoro();
+	
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 		class UTextBlock* TXTCombo;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+		class UTextBlock* TXTDefeat;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+		class UTextBlock* TXTWin;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+		class UProgressBar* HPBar;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+		class UButton* StartGame;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 		float time;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+		float maxTime;
+	UFUNCTION(meta = (BindWidget))
+		void startGame();
+
 };

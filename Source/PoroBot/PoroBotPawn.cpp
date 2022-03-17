@@ -16,7 +16,7 @@
 
 const FName APoroBotPawn::MoveForwardBinding("MoveForward");
 const FName APoroBotPawn::MoveRightBinding("MoveRight");
-
+bool APoroBotPawn::isStarted = false;
 APoroBotPawn::APoroBotPawn()
 {	
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> Mesh(TEXT("/Game/TwinStick/Poro/PoroBot_Run.PoroBot_Run"));
@@ -25,7 +25,7 @@ APoroBotPawn::APoroBotPawn()
 	RootComponent = MeshComponent;
 	MeshComponent->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
 	MeshComponent->SetSkeletalMesh(Mesh.Object);
-
+	
 	// Movement
 	MoveSpeed = 1000.0f;
 }
@@ -41,16 +41,26 @@ void APoroBotPawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 
 void APoroBotPawn::Tick(float DeltaSeconds)
 {
+	if (isStarted) {
+		Move(DeltaSeconds);
+	}
+}
+void APoroBotPawn::startGame() {
+	isStarted = !isStarted;
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "Start Game");
+}
+
+void APoroBotPawn::Move(float DeltaSeconds) {
 	// Clamp max size so that (X=1, Y=1) doesn't cause faster movement in diagonal directions
 	//const FVector MoveDirection = FVector(ForwardValue, RightValue, 0.f).GetClampedToMaxSize(1.0f);
 	const FVector MoveDirection = GetActorForwardVector();
 
 	// Calculate  movement
 	Movement = MoveDirection * MoveSpeed * DeltaSeconds;
-	
+
 	// Get the location of the agent
 	FVector AgentLocation = GetActorLocation();
-	
+
 	// Get the direction the agent is facing
 	FVector Direction = GetActorForwardVector();
 	FVector DirectionLeft = -GetActorRightVector();
@@ -62,7 +72,6 @@ void APoroBotPawn::Tick(float DeltaSeconds)
 
 	// Default trace params
 	FCollisionQueryParams TraceParams(TEXT("LineOfSight_Trace"), false, this);
-
 
 	// If non-zero size, move this actor
 	if (Movement.SizeSquared() > 0.0f)

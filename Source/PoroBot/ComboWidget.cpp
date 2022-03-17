@@ -2,13 +2,21 @@
 
 
 #include "ComboWidget.h"
-
+#include "PoroBotPawn.h"
+void UComboWidget::startGame() {
+	APoroBotPawn::startGame();
+	UGameplayStatics::SetGamePaused(GetWorld(), !APoroBotPawn::isStarted);
+}
 UComboWidget::UComboWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
-
+	maxTime = 50;
+	
+	
 }
 
 void UComboWidget::NativeConstruct() {
-	//Super::NativeConstruct();
+	Super::NativeConstruct();
+	StartGame->OnClicked.AddDynamic(this, &UComboWidget::startGame);
+	
 }
 
 void UComboWidget::UpdateComboCount(float Value) {
@@ -17,8 +25,28 @@ void UComboWidget::UpdateComboCount(float Value) {
 			TXTCombo->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
-	time = Value;
-	TXTCombo->SetText(FText::FromString("Time : " + FString::FromInt((int32)time)));
+	if (APoroBotPawn::isStarted) {
+		time = Value;
+		float percent = 1 - time / maxTime;
+		TXTCombo->SetText(FText::FromString("Time : " + FString::FromInt((int32)time) + " s"));
+		HPBar->SetPercent(percent);
+		if (percent < 0) {
+			RIPPoro();
+		}
+	}
+
+	
+}
+void UComboWidget::RIPPoro() {
+	TXTDefeat->SetText(FText::FromString("Le Poro est mort de faim"));
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
+	APoroBotPawn::isStarted = false;
+}
+
+void UComboWidget::WinPoro() {
+	TXTWin->SetText(FText::FromString("Poro est content,\nil mange des PoroSnax !"));
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
+	APoroBotPawn::isStarted = false;
 }
 
 void UComboWidget::ResetCombo() {

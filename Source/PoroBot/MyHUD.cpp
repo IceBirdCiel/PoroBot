@@ -2,12 +2,16 @@
 
 
 #include "MyHUD.h"
+#include "PoroBotPawn.h"
 
 AMyHUD::AMyHUD() {
 
 }
 void AMyHUD::BeginPlay() {
 	Super::BeginPlay();
+	APoroBotPawn::isStarted = false;
+
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
 	if (ComboWidgetClass) {
 		ComboWidget = CreateWidget<UComboWidget>(GetWorld(), ComboWidgetClass);
 		if (ComboWidget) {
@@ -19,6 +23,7 @@ void AMyHUD::BeginPlay() {
 void AMyHUD::Tick(float DeltaSeconds) {
 	Super::Tick(DeltaSeconds);
 	ComboWidget->UpdateComboCount(GetWorld()->GetTimeSeconds());
+	
 }
 
 void AMyHUD::DrawHUD() {
