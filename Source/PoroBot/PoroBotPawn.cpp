@@ -81,16 +81,40 @@ void APoroBotPawn::Move(float DeltaSeconds) {
 		FHitResult HitForward(1.f);
 		FHitResult HitLeft(1.f);
 		FHitResult HitRight(1.f);
+		TArray<FHitResult> Arr_HitForward;
+		TArray<FHitResult> Arr_HitLeft;
+		TArray<FHitResult> Arr_HitRight;
 		UWorld* World = GetWorld();
 		DrawDebugLine(World, AgentLocation, newLocation, FColor::Yellow, false, 0, 0, 10);
 		DrawDebugLine(World, AgentLocation, newLocationLeft, FColor::Red, false, 0, 0, 10);
 		DrawDebugLine(World, AgentLocation, newLocationRight, FColor::Green, false, 0, 0, 10);
 		//Raycast Forward
-		GetWorld()->LineTraceSingleByChannel(HitForward, AgentLocation, newLocation, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
+		GetWorld()->LineTraceMultiByChannel(Arr_HitForward, AgentLocation, newLocation, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
 		//Raycast Left
-		GetWorld()->LineTraceSingleByChannel(HitLeft, AgentLocation, newLocationLeft, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
+		GetWorld()->LineTraceMultiByChannel(Arr_HitLeft, AgentLocation, newLocationLeft, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
 		//Raycast Right
-		GetWorld()->LineTraceSingleByChannel(HitRight, AgentLocation, newLocationRight, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
+		GetWorld()->LineTraceMultiByChannel(Arr_HitRight, AgentLocation, newLocationRight, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
+		for each ( FHitResult Hit in Arr_HitForward)
+		{
+			AActor* hitActor = Hit.GetActor();
+			if (hitActor != NULL && hitActor->GetName().Contains("Obstacle")) {
+				HitForward = Hit;
+			}
+		}
+		for each (FHitResult Hit in Arr_HitLeft)
+		{
+			AActor* hitActor = Hit.GetActor();
+			if (hitActor != NULL && hitActor->GetName().Contains("Obstacle")) {
+				HitLeft = Hit;
+			}
+		}
+		for each (FHitResult Hit in Arr_HitRight)
+		{
+			AActor* hitActor = Hit.GetActor();
+			if (hitActor != NULL && hitActor->GetName().Contains("Obstacle")) {
+				HitRight = Hit;
+			}
+		}
 		AActor* HitActor = HitForward.GetActor();
 		AActor* HitActorLeft = HitLeft.GetActor();
 		AActor* HitActorRight = HitRight.GetActor();
