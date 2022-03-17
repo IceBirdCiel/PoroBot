@@ -21,14 +21,14 @@ APoroBotPawn::APoroBotPawn()
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> Mesh(TEXT("/Game/TwinStick/Poro/PoroBot_Run.PoroBot_Run"));
 	// Create the mesh component
 	MeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
-	//MeshComponent->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
+	MeshComponent->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
 	MeshComponent->SetSkeletalMesh(Mesh.Object);
 
     static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Game/TwinStick/Poro/Sphere.Sphere"));
     SphereComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Sphere"));
     SphereComponent->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
     SphereComponent->SetStaticMesh(Sphere.Object);
-    RootComponent = SphereComponent;
+    //RootComponent = SphereComponent;
 
 	// Movement
 	MoveSpeed = 1000.0f;
@@ -97,12 +97,19 @@ void APoroBotPawn::Move(float DeltaSeconds) {
 		DrawDebugLine(World, AgentLocation, newLocation, FColor::Yellow, false, 0, 0, 10);
 		DrawDebugLine(World, AgentLocation, newLocationLeft, FColor::Red, false, 0, 0, 10);
 		DrawDebugLine(World, AgentLocation, newLocationRight, FColor::Green, false, 0, 0, 10);
-		//Raycast Forward
+		GetWorld()->LineTraceSingleByChannel(HitForward, AgentLocation, newLocation, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
+		//Raycast Left
+		GetWorld()->LineTraceSingleByChannel(HitLeft, AgentLocation, newLocationLeft, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
+		//Raycast Right
+		GetWorld()->LineTraceSingleByChannel(HitRight, AgentLocation, newLocationRight, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
+
+		/*//Raycast Forward
 		GetWorld()->LineTraceMultiByChannel(Arr_HitForward, AgentLocation, newLocation, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
 		//Raycast Left
 		GetWorld()->LineTraceMultiByChannel(Arr_HitLeft, AgentLocation, newLocationLeft, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
 		//Raycast Right
 		GetWorld()->LineTraceMultiByChannel(Arr_HitRight, AgentLocation, newLocationRight, ECollisionChannel::ECC_Visibility, TraceParams, FCollisionResponseParams::DefaultResponseParam);
+		
 		for ( FHitResult Hit : Arr_HitForward)
 		{
 			AActor* hitActor = Hit.GetActor();
@@ -124,13 +131,14 @@ void APoroBotPawn::Move(float DeltaSeconds) {
 				HitRight = Hit;
 			}
 		}
+		*/
 		AActor* HitActor = HitForward.GetActor();
 		AActor* HitActorLeft = HitLeft.GetActor();
 		AActor* HitActorRight = HitRight.GetActor();
 		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, FString::SanitizeFloat(timeCoroutine));
 		if (timeCoroutine < 0) {
 			Movement = getMovement(HitActor, HitActorLeft, HitActorRight, DeltaSeconds, Movement);
-			timeCoroutine = 0.5;
+			timeCoroutine = 0.1;
 		}
 		timeCoroutine -= DeltaSeconds;
 		NewRotation = Movement.Rotation();
