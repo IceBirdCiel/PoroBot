@@ -136,9 +136,9 @@ void APoroBotPawn::Move(float DeltaSeconds) {
 		AActor* HitActorLeft = HitLeft.GetActor();
 		AActor* HitActorRight = HitRight.GetActor();
 		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, FString::SanitizeFloat(timeCoroutine));
-		if (timeCoroutine < 0) {
+		if (timeCoroutine < 0 || HitActor != NULL) {
 			Movement = getMovement(HitActor, HitActorLeft, HitActorRight, DeltaSeconds, Movement);
-			timeCoroutine = 0.1;
+			timeCoroutine = 0.5;
 		}
 		timeCoroutine -= DeltaSeconds;
 		NewRotation = Movement.Rotation();
