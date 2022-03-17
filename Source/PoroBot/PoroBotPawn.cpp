@@ -15,7 +15,7 @@
 
 const FName APoroBotPawn::MoveForwardBinding("MoveForward");
 const FName APoroBotPawn::MoveRightBinding("MoveRight");
-
+bool APoroBotPawn::isStarted = false;
 APoroBotPawn::APoroBotPawn()
 {	
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> Mesh(TEXT("/Game/TwinStick/Poro/PoroBot_Run.PoroBot_Run"));
@@ -50,32 +50,37 @@ void APoroBotPawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 
 void APoroBotPawn::Tick(float DeltaSeconds)
 {
-	// Find movement direction
-	const float ForwardValue = GetInputAxisValue(MoveForwardBinding);
-	const float RightValue = GetInputAxisValue(MoveRightBinding);
+	if (isStarted) {
+		Move(DeltaSeconds);
+	}
+}
+void APoroBotPawn::startGame() {
+	isStarted = !isStarted;
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "Start Game");
+}
 
+void APoroBotPawn::Move(float DeltaSeconds) {
 	// Clamp max size so that (X=1, Y=1) doesn't cause faster movement in diagonal directions
 	//const FVector MoveDirection = FVector(ForwardValue, RightValue, 0.f).GetClampedToMaxSize(1.0f);
 	const FVector MoveDirection = GetActorForwardVector();
 
 	// Calculate  movement
-	FVector Movement = MoveDirection * MoveSpeed * DeltaSeconds;
-	
+	Movement = MoveDirection * MoveSpeed * DeltaSeconds;
+
 	// Get the location of the agent
 	FVector AgentLocation = GetActorLocation();
-	
+
 	// Get the direction the agent is facing
 	FVector Direction = GetActorForwardVector();
 	FVector DirectionLeft = -GetActorRightVector();
 	FVector DirectionRight = GetActorRightVector();
 
-	FVector newLocation = AgentLocation + Direction * 200;
-	FVector newLocationLeft = AgentLocation + DirectionLeft * 200;
-	FVector newLocationRight = AgentLocation + DirectionRight * 200;
+	FVector newLocation = AgentLocation + Direction * 400;
+	FVector newLocationLeft = AgentLocation + DirectionLeft * 400;
+	FVector newLocationRight = AgentLocation + DirectionRight * 400;
 
 	// Default trace params
 	FCollisionQueryParams TraceParams(TEXT("LineOfSight_Trace"), false, this);
-
 
 	// If non-zero size, move this actor
 	if (Movement.SizeSquared() > 0.0f)
@@ -98,38 +103,53 @@ void APoroBotPawn::Tick(float DeltaSeconds)
 		AActor* HitActor = HitForward.GetActor();
 		AActor* HitActorLeft = HitLeft.GetActor();
 		AActor* HitActorRight = HitRight.GetActor();
-		Movement = getMovement(HitActor, HitActorLeft, HitActorRight, DeltaSeconds, Movement);
+		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, FString::SanitizeFloat(timeCoroutine));
+		if (timeCoroutine < 0) {
+			Movement = getMovement(HitActor, HitActorLeft, HitActorRight, DeltaSeconds, Movement);
+			timeCoroutine = 0.5;
+		}
+		timeCoroutine -= DeltaSeconds;
 		NewRotation = Movement.Rotation();
 		RootComponent->MoveComponent(Movement, NewRotation, true, &HitM);
 	}
 }
 
 FVector APoroBotPawn::getMovement(AActor* actorForward, AActor* actorLeft, AActor* actorRight, float DeltaSeconds, FVector initialMovement) {
-	FVector Movement = initialMovement;
+	FVector Move = initialMovement;
 
 	const FVector MoveDirectionLeft = -GetActorRightVector();
 	const FVector MoveDirectionRight = GetActorRightVector();
-	
-	if (actorForward != NULL && !actorForward->GetName().Contains("PoroSnax"))
-	{
-		if (actorLeft != NULL && !actorLeft->GetName().Contains("PoroSnax")) {
-			Movement = MoveDirectionRight * MoveSpeed * DeltaSeconds;
-		}
-		else if (actorRight != NULL && !actorRight->GetName().Contains("PoroSnax")) {
-			Movement = MoveDirectionLeft * MoveSpeed * DeltaSeconds;
+
+	if(actorForward != NULL && actorLeft != NULL && actorForward->GetName().Contains("Obstacle")){
+        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, actorForward->GetName());
+		Move = MoveDirectionRight * MoveSpeed * DeltaSeconds;
+	}
+	else if (actorForward != NULL && actorRight != NULL && actorRight->GetName().Contains("Obstacle")) {
+        GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, actorRight->GetName());
+		Move = MoveDirectionLeft * MoveSpeed * DeltaSeconds;
+	}
+	else if (actorLeft != NULL && actorRight != NULL && actorLeft->GetName().Contains("Obstacle")) {
+        GEngine->AddOnScreenDebugMessage(-1,0.5f, FColor::Blue, actorLeft->GetName());
+		Move = initialMovement;
+	}
+	else if (actorRight != NULL && actorRight->GetName().Contains("Obstacle")) {
+        GEngine->AddOnScreenDebugMessage(-1,0.5f, FColor::Magenta, actorRight->GetName());
+		float rand = FMath::FRandRange(0, 1);
+		if (rand < 0.5) {
+			Move = MoveDirectionLeft * MoveSpeed * DeltaSeconds;
 		}
 		else {
-			float rand = FMath::FRandRange(0, 1);
-			if (rand < 0.5) {
-				Movement = MoveDirectionLeft * MoveSpeed * DeltaSeconds;
-			}
-			else {
-				Movement = MoveDirectionRight * MoveSpeed * DeltaSeconds;
-			}
-
+			Move = initialMovement;
 		}
-		
-
 	}
-	return Movement;
+	else {
+		float rand = FMath::FRandRange(0, 1);
+		if (rand < 0.5) {
+			Move = initialMovement;
+		}
+		else {
+			Move = MoveDirectionRight * MoveSpeed * DeltaSeconds;
+		}
+	}
+	return Move;
 }

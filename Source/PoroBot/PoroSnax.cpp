@@ -16,14 +16,13 @@ APoroSnax::APoroSnax() {
 void APoroSnax::BeginPlay(){
     Super::BeginPlay();
     DrawDebugBox(GetWorld(), GetActorLocation(), GetComponentsBoundingBox().GetExtent(), FColor::Purple, true, -1, 0, 5);
-    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "Contains Poro");
 }
 
 void APoroSnax::OverlapBegin(AActor *OverlappedComponent, AActor *OtherActor)
 {
     if (OtherActor && (OtherActor != this)) {
         GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "POROOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
-    }
 
-    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "Nique");
+        OtherActor->SetActorRotation(this->GetActorRotation());
+    }
 }
