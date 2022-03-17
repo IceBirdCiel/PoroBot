@@ -19,4 +19,5 @@ class POROBOT_API ASnaxMountain : public ATriggerBox
 
 	UFUNCTION()
 	void OverlapBegin(class AActor* OverlappedComp, class AActor* OtherActor);
+	class UComboWidget* comboWidget;
 };

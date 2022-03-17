@@ -10,7 +10,7 @@ AMyHUD::AMyHUD() {
 void AMyHUD::BeginPlay() {
 	Super::BeginPlay();
 	APoroBotPawn::isStarted = false;
-
+	UComboWidget::win = false;
 	UGameplayStatics::SetGamePaused(GetWorld(), true);
 	if (ComboWidgetClass) {
 		ComboWidget = CreateWidget<UComboWidget>(GetWorld(), ComboWidgetClass);

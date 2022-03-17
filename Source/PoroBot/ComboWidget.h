@@ -27,6 +27,8 @@ public:
 	void RIPPoro();
 
 	void WinPoro();
+
+	static bool win;
 	
 
 

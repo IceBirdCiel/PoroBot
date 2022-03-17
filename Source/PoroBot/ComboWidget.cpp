@@ -3,6 +3,9 @@
 
 #include "ComboWidget.h"
 #include "PoroBotPawn.h"
+
+
+bool UComboWidget::win = false;
 void UComboWidget::startGame() {
 	APoroBotPawn::startGame();
 	UGameplayStatics::SetGamePaused(GetWorld(), !APoroBotPawn::isStarted);
@@ -33,6 +36,11 @@ void UComboWidget::UpdateComboCount(float Value) {
 		if (percent < 0) {
 			RIPPoro();
 		}
+	}
+
+	if (win) {
+		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, "win");
+		WinPoro();
 	}
 
 	
