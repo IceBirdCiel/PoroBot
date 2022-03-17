@@ -75,9 +75,9 @@ void APoroBotPawn::Move(float DeltaSeconds) {
 	FVector DirectionLeft = -GetActorRightVector();
 	FVector DirectionRight = GetActorRightVector();
 
-	FVector newLocation = AgentLocation + Direction * 400;
-	FVector newLocationLeft = AgentLocation + DirectionLeft * 400;
-	FVector newLocationRight = AgentLocation + DirectionRight * 400;
+	FVector newLocation = AgentLocation + Direction * 150;
+	FVector newLocationLeft = AgentLocation + DirectionLeft * 300;
+	FVector newLocationRight = AgentLocation + DirectionRight * 300;
 
 	// Default trace params
 	FCollisionQueryParams TraceParams(TEXT("LineOfSight_Trace"), false, this);
@@ -136,7 +136,7 @@ void APoroBotPawn::Move(float DeltaSeconds) {
 		AActor* HitActorLeft = HitLeft.GetActor();
 		AActor* HitActorRight = HitRight.GetActor();
 		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, FString::SanitizeFloat(timeCoroutine));
-		if (timeCoroutine < 0 || HitActor != NULL) {
+		if (timeCoroutine < 0 || (HitActor != NULL && HitActor->GetName().Contains("Obstacle"))) {
 			Movement = getMovement(HitActor, HitActorLeft, HitActorRight, DeltaSeconds, Movement);
 			timeCoroutine = 0.5;
 		}
@@ -151,7 +151,8 @@ FVector APoroBotPawn::getMovement(AActor* actorForward, AActor* actorLeft, AActo
 
 	const FVector MoveDirectionLeft = -GetActorRightVector();
 	const FVector MoveDirectionRight = GetActorRightVector();
-
+	// Devant et Gauche = Obstacle -> Direction Droite
+	/*
 	if(actorForward != NULL && actorLeft != NULL && actorForward->GetName().Contains("Obstacle")){
         GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, actorForward->GetName());
 		Move = MoveDirectionRight * MoveSpeed * DeltaSeconds;
@@ -181,6 +182,20 @@ FVector APoroBotPawn::getMovement(AActor* actorForward, AActor* actorLeft, AActo
 		}
 		else {
 			Move = MoveDirectionRight * MoveSpeed * DeltaSeconds;
+		}
+	}*/
+
+	if (actorForward != NULL && actorForward->GetName().Contains("Obstacle")) {
+		if (actorLeft != NULL && actorLeft->GetName().Contains("Obstacle")) {
+			if (actorRight == NULL) {
+				Move = MoveDirectionRight * MoveSpeed * DeltaSeconds;
+			}
+			else {
+				Move = -Move;
+			}
+		}
+		else {
+			Move = MoveDirectionLeft * MoveSpeed * DeltaSeconds;
 		}
 	}
 	return Move;
