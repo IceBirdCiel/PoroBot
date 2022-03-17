@@ -1,7 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "PoroBotPawn.h"
-#include "PoroBotProjectile.h"
 #include "TimerManager.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -23,11 +22,21 @@ APoroBotPawn::APoroBotPawn()
 	// Create the mesh component
 	MeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
 	RootComponent = MeshComponent;
-	MeshComponent->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
+	//MeshComponent->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
 	MeshComponent->SetSkeletalMesh(Mesh.Object);
+
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Game/TwinStick/Poro/Sphere.Sphere"));
+    SphereComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Sphere"));
+    SphereComponent->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
+    SphereComponent->SetStaticMesh(Sphere.Object);
 
 	// Movement
 	MoveSpeed = 1000.0f;
+}
+
+void APoroBotPawn::BeginPlay() {
+    Super::BeginPlay();
+    SetActorLocation(FVector(-1739,-1620, 270));
 }
 
 void APoroBotPawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -101,13 +110,12 @@ FVector APoroBotPawn::getMovement(AActor* actorForward, AActor* actorLeft, AActo
 	const FVector MoveDirectionLeft = -GetActorRightVector();
 	const FVector MoveDirectionRight = GetActorRightVector();
 	
-	if (actorForward != NULL)
+	if (actorForward != NULL && !actorForward->GetName().Contains("PoroSnax"))
 	{
-		
-		if (actorLeft != NULL) {
+		if (actorLeft != NULL && !actorLeft->GetName().Contains("PoroSnax")) {
 			Movement = MoveDirectionRight * MoveSpeed * DeltaSeconds;
 		}
-		else if (actorRight != NULL) {
+		else if (actorRight != NULL && !actorRight->GetName().Contains("PoroSnax")) {
 			Movement = MoveDirectionLeft * MoveSpeed * DeltaSeconds;
 		}
 		else {

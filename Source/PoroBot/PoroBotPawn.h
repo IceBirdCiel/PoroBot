@@ -14,6 +14,8 @@ class APoroBotPawn : public APawn
 	/* The mesh component */
 	UPROPERTY(Category = Mesh, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class USkeletalMeshComponent* MeshComponent;
+    UPROPERTY(Category = Mesh, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+    class UStaticMeshComponent* SphereComponent;
 
 public:
 	APoroBotPawn();
@@ -23,6 +25,7 @@ public:
 	float MoveSpeed;
 
 	// Begin Actor Interface
+    virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 	// End Actor Interface
