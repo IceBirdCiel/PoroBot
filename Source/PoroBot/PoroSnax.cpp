@@ -8,7 +8,7 @@
 #include "Engine/StaticMesh.h"
 #include "Engine/CollisionProfile.h"
 #include "DrawDebugHelpers.h"
-
+int32 APoroSnax::nbSnax = 0;
 APoroSnax::APoroSnax() {
     OnActorBeginOverlap.AddDynamic(this, &APoroSnax::OverlapBegin);
     SetActorHiddenInGame(false); 
@@ -18,14 +18,22 @@ APoroSnax::APoroSnax() {
     SnaxComponent->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
     SnaxComponent->SetStaticMesh(Mesh.Object);
     SnaxComponent->SetVisibility(true);
+    //SnaxComponent->SetRelativeRotation(FQuat(0, 0, 90, 0));
 }
 
 void APoroSnax::BeginPlay(){
     Super::BeginPlay();
-    SnaxComponent->SetRelativeLocation(FVector(0, 0, 0));
-    FQuat rotation(FRotator::MakeFromEuler(FVector(0, 0, 90)));
-    SnaxComponent->SetRelativeRotation(rotation);
+    APoroSnax::InitValue();
     DrawDebugBox(GetWorld(), GetActorLocation(), GetComponentsBoundingBox().GetExtent(), FColor::Purple, true, -1, 0, 5);
+}
+
+void APoroSnax::InitValue() {
+    GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "Init Value");
+    SnaxComponent->SetWorldLocation(this->GetActorLocation());
+}
+
+void APoroSnax::SetSnaxRotation(FQuat quat) {
+    SnaxComponent->SetRelativeRotation(quat);
 }
 
 void APoroSnax::OverlapBegin(AActor *OverlappedComponent, AActor *OtherActor)

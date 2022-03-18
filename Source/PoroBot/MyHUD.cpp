@@ -11,7 +11,6 @@ void AMyHUD::BeginPlay() {
 	Super::BeginPlay();
 	APoroBotPawn::isStarted = false;
 	UComboWidget::win = false;
-	UGameplayStatics::SetGamePaused(GetWorld(), true);
 	if (ComboWidgetClass) {
 		ComboWidget = CreateWidget<UComboWidget>(GetWorld(), ComboWidgetClass);
 		if (ComboWidget) {
@@ -22,7 +21,7 @@ void AMyHUD::BeginPlay() {
 
 void AMyHUD::Tick(float DeltaSeconds) {
 	Super::Tick(DeltaSeconds);
-	ComboWidget->UpdateComboCount(GetWorld()->GetTimeSeconds());
+	ComboWidget->UpdateComboCount(DeltaSeconds * 1.2);
 	
 }
 

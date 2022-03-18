@@ -8,12 +8,10 @@
 bool UComboWidget::win = false;
 void UComboWidget::startGame() {
 	APoroBotPawn::startGame();
-	UGameplayStatics::SetGamePaused(GetWorld(), !APoroBotPawn::isStarted);
 }
 UComboWidget::UComboWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {
 	maxTime = 50;
-	
-	
+	time = 0;
 }
 
 void UComboWidget::NativeConstruct() {
@@ -23,15 +21,14 @@ void UComboWidget::NativeConstruct() {
 }
 
 void UComboWidget::UpdateComboCount(float Value) {
-	if (TXTCombo && Value > 1) {
-		if (TXTCombo->Visibility == ESlateVisibility::Hidden) {
+	if (TXTCombo->Visibility == ESlateVisibility::Hidden) {
 			TXTCombo->SetVisibility(ESlateVisibility::Visible);
 		}
-	}
 	if (APoroBotPawn::isStarted) {
-		time = Value;
+		time += Value;
 		float percent = 1 - time / maxTime;
 		TXTCombo->SetText(FText::FromString("Time : " + FString::FromInt((int32)time) + " s"));
+		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, FString::SanitizeFloat(time));
 		HPBar->SetPercent(percent);
 		if (percent < 0) {
 			RIPPoro();

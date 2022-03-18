@@ -46,6 +46,7 @@ void APoroBotPawn::BeginPlay() {
 	EnableInput(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	//InputComponent->BindAction("MouseLeftClicked", IE_Pressed, this, &APoroBotPawn::MouseClick);
 	SphereComponent->SetRelativeLocation(FVector(0, 0, 50));
+	APoroSnax::nbSnax = 0;
 }
 
 void APoroBotPawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -68,42 +69,53 @@ void APoroBotPawn::Tick(float DeltaSeconds)
 }
 
 void APoroBotPawn::MouseClick() {
-	FHitResult hit;
-	const float ForwardValue = GetInputAxisValue(MoveForwardBinding);
-	const float RightValue = GetInputAxisValue(MoveRightBinding);
-	const FVector MoveDirection = FVector(ForwardValue, RightValue, 0.f).GetClampedToMaxSize(1.0f);
+	if (APoroSnax::nbSnax < 3) {
+		FHitResult hit;
+		const float ForwardValue = GetInputAxisValue(MoveForwardBinding);
+		const float RightValue = GetInputAxisValue(MoveRightBinding);
+		const FVector MoveDirection = FVector(ForwardValue, RightValue, 0.f).GetClampedToMaxSize(1.0f);
 
-	APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	playerController->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_Camera), true, hit); // Raycast de la souris sur le sol
-	AActor* actor = hit.GetActor();
-	if (actor != NULL && actor->GetName().Contains("Floor")) {
-		FVector rotation = FVector();
-		//Up
-		if (MoveDirection.X > 0) {
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta, "Up");
-			rotation = FVector(0, 0, 0);
-		}
-		//Down
-		if (MoveDirection.X < 0) {
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta, "Down");
-			rotation = FVector(0, 0, 180);
-		}
-		//Left
-		if (MoveDirection.Y < 0) {
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta, "Left");
-			rotation = FVector(0, 0, -90);
+		APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+		playerController->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_Camera), true, hit); // Raycast de la souris sur le sol
+		AActor* actor = hit.GetActor();
+		if (actor != NULL && actor->GetName().Contains("Floor")) {
+			FVector rotation = FVector();
+			//Up
+			if (MoveDirection.X > 0) {
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta, "Up");
+				rotation = FVector(0, 0, 0);
+			}
+			//Down
+			if (MoveDirection.X < 0) {
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta, "Down");
+				rotation = FVector(0, 0, 180);
+			}
+			//Left
+			if (MoveDirection.Y < 0) {
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta, "Left");
+				rotation = FVector(0, 0, -90);
 
+			}
+			if (MoveDirection.Y > 0) {
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta, "Right");
+				rotation = FVector(0, 0, 90);
+			}
+			APoroSnax* poroSnax = GetWorld()->SpawnActor<APoroSnax>(hit.Location, FRotator()); // Spawn d'un porosnax
+			
+			FQuat baseRotation(FRotator::MakeFromEuler(rotation));
+			poroSnax->SetActorRelativeRotation(baseRotation);
+			poroSnax->InitValue();
+			FQuat rotationSnax = FQuat::MakeFromEuler(FVector(rotation.X, rotation.Y, rotation.Z + 90));
+			poroSnax->SetSnaxRotation(rotationSnax);
+			FVector origin = poroSnax->GetComponentsBoundingBox().GetCenter();
+			FVector extent = FVector(156, 40, 100);
+			//poroSnax->GetCompo() = poroSnax->GetComponentsBoundingBox().BuildAABB(origin, extent);
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta, "x: " + FString::SanitizeFloat(ForwardValue) + "; y:" + FString::SanitizeFloat(RightValue));
 		}
-		if (MoveDirection.Y > 0) {
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta, "Right");
-			rotation = FVector(0, 0, 90);
-		}
-		APoroSnax* poroSnax = GetWorld()->SpawnActor<APoroSnax>(hit.Location, FRotator::MakeFromEuler(rotation)); // Spawn d'un porosnax
-		
-		FVector origin = poroSnax->GetComponentsBoundingBox().GetCenter();
-		FVector extent = FVector(156, 40, 100);
-		//poroSnax->GetCompo() = poroSnax->GetComponentsBoundingBox().BuildAABB(origin, extent);
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta,"x: " + FString::SanitizeFloat(ForwardValue) + "; y:" + FString::SanitizeFloat(RightValue));
+		APoroSnax::nbSnax += 1;
+	}
+	else {
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, "Plus de PoroSnax Disponibles");
 	}
 }
 

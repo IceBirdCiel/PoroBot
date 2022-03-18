@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+
+#include "Components/BoxComponent.h"
 #include "PoroSnax.h"
 #include "PoroBotPawn.generated.h"
 
