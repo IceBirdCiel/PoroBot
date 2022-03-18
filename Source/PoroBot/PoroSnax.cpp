@@ -11,10 +11,20 @@
 
 APoroSnax::APoroSnax() {
     OnActorBeginOverlap.AddDynamic(this, &APoroSnax::OverlapBegin);
+    SetActorHiddenInGame(false); 
+    
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> Mesh(TEXT("/Game/TwinStick/Poro/PoroSnax.PoroSnax"));
+    SnaxComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+    SnaxComponent->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+    SnaxComponent->SetStaticMesh(Mesh.Object);
+    SnaxComponent->SetVisibility(true);
 }
 
 void APoroSnax::BeginPlay(){
     Super::BeginPlay();
+    SnaxComponent->SetRelativeLocation(FVector(0, 0, 0));
+    FQuat rotation(FRotator::MakeFromEuler(FVector(0, 0, 90)));
+    SnaxComponent->SetRelativeRotation(rotation);
     DrawDebugBox(GetWorld(), GetActorLocation(), GetComponentsBoundingBox().GetExtent(), FColor::Purple, true, -1, 0, 5);
 }
 

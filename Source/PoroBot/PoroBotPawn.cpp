@@ -21,8 +21,11 @@ APoroBotPawn::APoroBotPawn()
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> Mesh(TEXT("/Game/TwinStick/Poro/PoroBot_Run.PoroBot_Run"));
 	// Create the mesh component
 	MeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
-	MeshComponent->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
+	MeshComponent->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
 	MeshComponent->SetSkeletalMesh(Mesh.Object);
+	
+	static ConstructorHelpers::FObjectFinder<UAnimationAsset> Anim(TEXT("/Game/TwinStick/Poro/PoroBot_Run_Anim.PoroBot_Run_Anim"));
+	MeshComponent->AnimationData.AnimToPlay = Anim.Object;
 
     static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Game/TwinStick/Poro/Sphere.Sphere"));
     SphereComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Sphere"));
@@ -37,6 +40,7 @@ APoroBotPawn::APoroBotPawn()
 void APoroBotPawn::BeginPlay() {
     Super::BeginPlay();
     SetActorLocation(FVector(-1739,-1620, 270));
+	SphereComponent->SetRelativeLocation(FVector(0, 0, 50));
 }
 
 void APoroBotPawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)

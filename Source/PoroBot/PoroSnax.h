@@ -13,6 +13,8 @@ UCLASS()
 class POROBOT_API APoroSnax : public ATriggerBox
 {
 	GENERATED_BODY()
+    UPROPERTY(Category = Mesh, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+    class UStaticMeshComponent* SnaxComponent;
 
 protected:
     virtual void BeginPlay() override;
