@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "PoroSnax.h"
 #include "PoroBotPawn.generated.h"
 
 UCLASS(Blueprintable)
@@ -19,12 +20,15 @@ class APoroBotPawn : public APawn
 
 public:
 	APoroBotPawn();
+	void MouseClick();
+	
 
 	/* The speed our ship moves around the level */
 	UPROPERTY(Category = Gameplay, EditAnywhere, BlueprintReadWrite)
 	float MoveSpeed;
 	static void startGame();
 	
+
 	// Begin Actor Interface
     virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
@@ -37,6 +41,7 @@ public:
 	// Static names for axis bindings
 	static const FName MoveForwardBinding;
 	static const FName MoveRightBinding;
+	static const FName Spawn;
 	FVector Movement;
 	float timeCoroutine = 0.5;
 	static bool isStarted;
