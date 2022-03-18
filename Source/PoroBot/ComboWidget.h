@@ -29,7 +29,7 @@ public:
 	void WinPoro();
 
 	static bool win;
-	
+	static float externTime;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))

@@ -45,7 +45,7 @@ void APoroBotPawn::BeginPlay() {
 	
 	EnableInput(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	//InputComponent->BindAction("MouseLeftClicked", IE_Pressed, this, &APoroBotPawn::MouseClick);
-	SphereComponent->SetRelativeLocation(FVector(0, 0, 50));
+	SphereComponent->SetWorldLocation(this->GetActorLocation());
 	APoroSnax::nbSnax = 0;
 }
 
@@ -63,6 +63,7 @@ void APoroBotPawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 
 void APoroBotPawn::Tick(float DeltaSeconds)
 {
+	SphereComponent->SetWorldLocation(this->GetActorLocation());
 	if (isStarted) {
 		Move(DeltaSeconds);
 	}
@@ -100,7 +101,7 @@ void APoroBotPawn::MouseClick() {
 				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta, "Right");
 				rotation = FVector(0, 0, 90);
 			}
-			APoroSnax* poroSnax = GetWorld()->SpawnActor<APoroSnax>(hit.Location, FRotator()); // Spawn d'un porosnax
+			APoroSnax* poroSnax = GetWorld()->SpawnActor<APoroSnax>(FVector(hit.Location.X, hit.Location.Y, hit.Location.Z + 100), FRotator()); // Spawn d'un porosnax
 			
 			FQuat baseRotation(FRotator::MakeFromEuler(rotation));
 			poroSnax->SetActorRelativeRotation(baseRotation);

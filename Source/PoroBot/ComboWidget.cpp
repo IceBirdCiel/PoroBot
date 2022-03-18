@@ -6,6 +6,7 @@
 
 
 bool UComboWidget::win = false;
+float UComboWidget::externTime = 0;
 void UComboWidget::startGame() {
 	APoroBotPawn::startGame();
 }
@@ -26,6 +27,7 @@ void UComboWidget::UpdateComboCount(float Value) {
 		}
 	if (APoroBotPawn::isStarted) {
 		time += Value;
+		externTime = time;
 		float percent = 1 - time / maxTime;
 		TXTCombo->SetText(FText::FromString("Time : " + FString::FromInt((int32)time) + " s"));
 		GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::Red, FString::SanitizeFloat(time));
