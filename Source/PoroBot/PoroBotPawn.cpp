@@ -15,6 +15,7 @@
 
 const FName APoroBotPawn::MoveForwardBinding("MoveForward");
 const FName APoroBotPawn::MoveRightBinding("MoveRight");
+const FName APoroBotPawn::Spawn("Fire");
 bool APoroBotPawn::isStarted = false;
 APoroBotPawn::APoroBotPawn()
 {	
@@ -32,7 +33,8 @@ APoroBotPawn::APoroBotPawn()
     SphereComponent->SetCollisionProfileName(UCollisionProfile::Pawn_ProfileName);
     SphereComponent->SetStaticMesh(Sphere.Object);
     //RootComponent = SphereComponent;
-
+	AutoReceiveInput = EAutoReceiveInput::Player0;
+	AutoPossessPlayer = EAutoReceiveInput::Player0;
 	// Movement
 	MoveSpeed = 1000.0f;
 }
@@ -40,14 +42,20 @@ APoroBotPawn::APoroBotPawn()
 void APoroBotPawn::BeginPlay() {
     Super::BeginPlay();
     SetActorLocation(FVector(-1739,-1620, 270));
+	
+	EnableInput(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	//InputComponent->BindAction("MouseLeftClicked", IE_Pressed, this, &APoroBotPawn::MouseClick);
 	SphereComponent->SetRelativeLocation(FVector(0, 0, 50));
 }
 
 void APoroBotPawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
+	//Super::SetupPlayerInputComponent(PlayerInputComponent);
 	check(PlayerInputComponent);
 
 	// set up gameplay key bindings
+
+	PlayerInputComponent->BindAction(Spawn, IE_Pressed, this, &APoroBotPawn::MouseClick);
 	PlayerInputComponent->BindAxis(MoveForwardBinding);
 	PlayerInputComponent->BindAxis(MoveRightBinding);
 }
@@ -58,12 +66,56 @@ void APoroBotPawn::Tick(float DeltaSeconds)
 		Move(DeltaSeconds);
 	}
 }
+
+void APoroBotPawn::MouseClick() {
+	FHitResult hit;
+	const float ForwardValue = GetInputAxisValue(MoveForwardBinding);
+	const float RightValue = GetInputAxisValue(MoveRightBinding);
+	const FVector MoveDirection = FVector(ForwardValue, RightValue, 0.f).GetClampedToMaxSize(1.0f);
+
+	APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	playerController->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_Camera), true, hit); // Raycast de la souris sur le sol
+	AActor* actor = hit.GetActor();
+	if (actor != NULL && actor->GetName().Contains("Floor")) {
+		FVector rotation = FVector();
+		//Up
+		if (MoveDirection.X > 0) {
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta, "Up");
+			rotation = FVector(0, 0, 0);
+		}
+		//Down
+		if (MoveDirection.X < 0) {
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta, "Down");
+			rotation = FVector(0, 0, 180);
+		}
+		//Left
+		if (MoveDirection.Y < 0) {
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta, "Left");
+			rotation = FVector(0, 0, -90);
+
+		}
+		if (MoveDirection.Y > 0) {
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta, "Right");
+			rotation = FVector(0, 0, 90);
+		}
+		APoroSnax* poroSnax = GetWorld()->SpawnActor<APoroSnax>(hit.Location, FRotator::MakeFromEuler(rotation)); // Spawn d'un porosnax
+		
+		FVector origin = poroSnax->GetComponentsBoundingBox().GetCenter();
+		FVector extent = FVector(156, 40, 100);
+		//poroSnax->GetCompo() = poroSnax->GetComponentsBoundingBox().BuildAABB(origin, extent);
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta,"x: " + FString::SanitizeFloat(ForwardValue) + "; y:" + FString::SanitizeFloat(RightValue));
+	}
+}
+
+
+
 void APoroBotPawn::startGame() {
 	isStarted = !isStarted;
 	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, "Start Game");
 }
 
 void APoroBotPawn::Move(float DeltaSeconds) {
+	
 	// Clamp max size so that (X=1, Y=1) doesn't cause faster movement in diagonal directions
 	//const FVector MoveDirection = FVector(ForwardValue, RightValue, 0.f).GetClampedToMaxSize(1.0f);
 	const FVector MoveDirection = GetActorForwardVector();
